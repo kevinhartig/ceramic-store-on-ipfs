@@ -23,14 +23,33 @@ function App() {
     }, []);
 
     useEffect(() => {
+
+        async function addSignedObject(did, ipfs, payload) {
+            try {
+                // sign the payload as dag-jose
+                const {jws, linkedBlock} = await did.createDagJWS(payload)
+
+                // put the JWS into the ipfs dag
+                const jwsCid = await ipfs.dag.put(jws, {storeCodec: dagJose.name, hashAlg: 'sha2-256'})
+
+                // put the payload into the ipfs dag
+                await ipfs.block.put(linkedBlock, jws.link)
+
+                return jwsCid
+            } catch (err) {
+                console.error(err);
+                return null;
+            }
+        }
+        
         async function createDid() {
             try {
                 if (!load) return;
 
                 if (!authenticated) {
                     // const fs = await IPFS.create({ipld: {codecs: [dagJose]}});
-                    const fs = await IPFS.create();
-                    setIpfs(fs);
+                    const ipfs = await IPFS.create();
+                    setIpfs(ipfs);
 
                     const authSecret = new Uint8Array(32);
                     crypto.getRandomValues(authSecret);
@@ -59,6 +78,12 @@ function App() {
                     await did.authenticate();
                     console.log('Connected with DID:', did.id);
                     setDid(did);
+
+                    // Create signed object
+                    const cid1 = await addSignedObject(did, ipfs,{ hello: 'world' })
+
+                    // Log the DagJWS:
+                    console.log((await ipfs.dag.get(cid1)).value)
                 }
             } catch (err) {
                 console.error(err);
@@ -68,7 +93,7 @@ function App() {
         createDid();
 
     }, [load]);
-    
+
     return (
         <div className="App">
             <p>
