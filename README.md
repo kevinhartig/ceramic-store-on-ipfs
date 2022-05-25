@@ -5,3 +5,7 @@ $ npm install util
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 Use info at:
     https://blog.ceramic.network/how-to-store-signed-and-encrypted-data-on-ipfs/
+
+Requires a local IPFS node running and accessible to connect with.
+Requires a local Ceramic daemon running.
+
