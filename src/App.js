@@ -109,7 +109,7 @@ function App() {
     return (
         <div className="App">
             <p>
-                Edit <code>src/App.js</code> and save to reload.
+                Store signed and encrypted data on IPFS
             </p>
             <button onClick={() => setLoad(true)}>Create DID</button>
             { did && <h2>{did.id}</h2> }
