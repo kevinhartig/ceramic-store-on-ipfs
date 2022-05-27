@@ -84,6 +84,18 @@ function App() {
 
                     // Log the DagJWS:
                     console.log((await ipfs.dag.get(cid1)).value)
+
+                    // Log the payload:
+                    await ipfs.dag.get(cid1, { path: '/link' }).then(b => console.log(b.value))
+
+                    // Create another signed object that links to the previous one
+                    const cid2 = await addSignedObject(did, ipfs,{ hello: 'getting the hang of this', prev: cid1 })
+
+                    // Log the new payload:
+                    await ipfs.dag.get(cid2, { path: '/link' }).then(b => console.log(b.value))
+
+                    // Log the old payload:
+                    await ipfs.dag.get(cid2, { path: '/link/prev/link' }).then(b => console.log(b.value))
                 }
             } catch (err) {
                 console.error(err);
