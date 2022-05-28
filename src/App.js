@@ -41,6 +41,20 @@ function App() {
                 return null;
             }
         }
+
+        async function addEncryptedObject(did, ipfs, cleartext, dids) {
+            const jwe = await did.createDagJWE(cleartext, dids)
+            return ipfs.dag.put(jwe, { storeCodec: 'dag-jose', hashAlg: 'sha2-256' })
+        }
+
+        async function followSecretPath(did, ipfs, cid) {
+            const jwe = (await ipfs.dag.get(cid)).value
+            const cleartext = await did.decryptDagJWE(jwe)
+            console.log(cleartext)
+            if (cleartext.prev) {
+                await followSecretPath(did, ipfs, cleartext.prev)
+            }
+        }
         
         async function createDid() {
             try {
@@ -96,6 +110,23 @@ function App() {
 
                     // Log the old payload:
                     await ipfs.dag.get(cid2, { path: '/link/prev/link' }).then(b => console.log(b.value))
+
+                    const jws1 = await ipfs.dag.get(cid1)
+                    const jws2 = await ipfs.dag.get(cid2)
+
+                    // verify signing
+                    await did.verifyJWS(jws1.value).then(b => console.log("object was signed with id: " + b.didResolutionResult.didDocument.id))
+                    await did.verifyJWS(jws2.value).then(b => console.log("object was signed with id: " + b.didResolutionResult.didDocument.id))
+
+                    //create and store encrypted json object
+                    const cid3 = await addEncryptedObject(did, ipfs, { hello: 'secret' }, [did.id])
+                    const cid4 = await addEncryptedObject(did, ipfs,{ hello: 'cool!', prev: cid3 }, [did.id])
+
+                    // retrieve a single object
+                    await followSecretPath(did, ipfs, cid3)
+
+                    // retrieve linked objects
+                    await followSecretPath(did, ipfs, cid4)
                 }
             } catch (err) {
                 console.error(err);
