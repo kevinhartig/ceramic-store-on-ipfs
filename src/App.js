@@ -61,7 +61,7 @@ function App() {
                 if (!load) return;
 
                 if (!authenticated) {
-                    // const fs = await IPFS.create({ipld: {codecs: [dagJose]}});
+                    // const ipfs = await IPFS.create({ipld: {codecs: [dagJose]}});
                     const ipfs = await IPFS.create();
                     setIpfs(ipfs);
 
@@ -94,7 +94,8 @@ function App() {
                     setDid(did);
 
                     // Create signed object
-                    const cid1 = await addSignedObject(did, ipfs,{ hello: 'world' })
+                    const cid1 = await addSignedObject(did, ipfs,{ hello: 'world' });
+                    const cid1_copy = await addSignedObject(did, ipfs,{ hello: 'world' });
 
                     // Log the DagJWS:
                     console.log((await ipfs.dag.get(cid1)).value)
